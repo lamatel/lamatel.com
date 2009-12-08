@@ -15,6 +15,51 @@ class Less::More
     def source_paths=(paths_array)
       @source_paths = paths_array.map{|p| Pathname.new(p.to_s)}
     end
+
+    # Override because this method would only generate if .css file didnt exist for path_as_array
+    # and we want to force re-compilation of a less file, overwriting css
+    def generate(path_as_array)
+      source = pathname_from_array(path_as_array)
+      if source.extname == ".css"
+        css = File.read(source)
+      else
+        css = generate_css(source)
+      end
+      css
+    end
+    
+    def generate_css(source)
+      engine = File.open(source) {|f| Less::Engine.new(f) }
+      css = engine.to_css
+      css.delete!("\n") if self.compression?
+      css = (HEADER % [source.to_s]) << css if self.header?
+      css
+    end
+
+
+    # If .less file, compile CSS for same directory as a cache
+    def compile(path_as_array)
+      source = pathname_from_filename(path_as_array.to_s + '.less')
+      return if source.nil?
+      unless source.extname == ".css"
+        destination = Pathname.new(source.to_s.gsub(/.less$/, '.css'))
+
+        if !File.exists?(destination) || source.mtime > destination.mtime
+          css = Less::More.generate_css(source)
+          File.open(destination, "w") {|f|
+            f.puts css
+          }
+        end
+      end
+    end
+    
+    def needs_recompiling?(source)
+      if source.extname == ".css"
+        return false
+      else
+        
+      end
+    end
     
             
     # Array of Pathname instances for all the less source files.
@@ -63,7 +108,14 @@ class Less::More
         Pathname.glob(File.join(source_path.to_s, *path_spec))[0]
       end.compact.first
     end
-  
+
+    # Find pathname for specific filename in each of the source paths
+    def pathname_from_filename(filename)
+      self.source_paths.map do |source_path|
+        Pathname.glob(File.join(source_path.to_s, filename))[0]
+      end.compact.first
+    end  
+
   end
 
 end
