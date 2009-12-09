@@ -7,6 +7,7 @@ class Creditcard < ActiveRecord::Base
   validates_numericality_of :year, :integer => true   
   validates_presence_of :number
   validates_presence_of :verification_value
+  after_validation :remove_sensitive 
   
   def name?
     first_name? && last_name?
@@ -45,6 +46,12 @@ class Creditcard < ActiveRecord::Base
   def self.requires_verification_value?
     true
     #require_verification_value
+  end
+  
+  private
+  def remove_sensitive
+    self.number = nil unless Spree::Config[:store_cc]
+    self.verification_value = nil unless Spree::Config[:store_cvv]
   end
   
 end
