@@ -1,10 +1,12 @@
 class CheckoutsController < Spree::BaseController
   include Spree::Checkout::Hooks
   include ActionView::Helpers::NumberHelper # Needed for JS usable rate information
+
   before_filter :load_data
   before_filter :set_state
   before_filter :enforce_registration, :except => :register
-
+  helper :users
+  
   resource_controller :singleton
   actions :show, :edit, :update
   belongs_to :order
@@ -45,7 +47,8 @@ class CheckoutsController < Spree::BaseController
   end
   
   def register
-    
+    @user = User.new
+    render 'register'
   end
     
   private
@@ -141,6 +144,7 @@ class CheckoutsController < Spree::BaseController
   
   def enforce_registration
     return if current_user or Spree::Config[:anonymous_checkout]
-    redirect_to register_order_checkout_url(parent_object) and return false
+    store_location
+    redirect_to register_order_checkout_url(parent_object)
   end
 end
