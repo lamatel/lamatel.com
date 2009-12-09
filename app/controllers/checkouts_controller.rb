@@ -15,6 +15,7 @@ class CheckoutsController < Spree::BaseController
   
   edit.before :edit_hooks  
   delivery.edit_hook :load_available_methods 
+  address.edit_hook :set_ip_address
     
   update.before :update_before
   update.after :update_after
@@ -114,7 +115,11 @@ class CheckoutsController < Spree::BaseController
     @available_methods = rate_hash
     @checkout.shipment.shipping_method_id ||= @available_methods.first[:id]
   end
-
+  
+  def set_ip_address
+    @checkout.update_attribute(:ip_address, request.env['REMOTE_ADDR'])
+  end
+  
   def complete_order
     flash[:notice] = t('order_processed_successfully')
   end

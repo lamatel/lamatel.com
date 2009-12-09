@@ -76,12 +76,19 @@ class CheckoutsControllerTest < ActionController::TestCase
                 
   context "incomplete order" do
     setup do 
+      Spree::Config.set({ :default_country_id => countries(:united_states).id })
       @order = Factory(:order)
       @params = { :order_id => @order.number } 
     end
     context "GET /checkout" do
       setup { get :show } 
       should_redirect_to("first step of checkout") { edit_order_checkout_url(@order) }
+    end
+    context "GET /edit" do
+      setup { get :edit }
+      should "assign the checkout ip address" do
+        assert_equal "0.0.0.0", assigns(:checkout).ip_address
+      end
     end
   end
   context "complete order" do
