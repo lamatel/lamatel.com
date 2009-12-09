@@ -74,39 +74,73 @@ class CheckoutsControllerTest < ActionController::TestCase
   #   end
   # end      
                 
-  context "incomplete order" do
-    setup do 
-      Spree::Config.set({ :default_country_id => countries(:united_states).id })
-      @order = Factory(:order)
-      @params = { :order_id => @order.number } 
-    end
-    context "GET /checkout" do
-      setup { get :show } 
-      should_redirect_to("first step of checkout") { edit_order_checkout_url(@order) }
-    end
-    context "GET /edit" do
-      setup { get :edit }
-      should "assign the checkout ip address" do
-        assert_equal "0.0.0.0", assigns(:checkout).ip_address
+  context "current_user" do
+    setup { set_current_user }
+    context "with incomplete order" do
+      setup do 
+        Spree::Config.set({ :default_country_id => countries(:united_states).id })
+        @order = Factory(:order)
+        @params = { :order_id => @order.number } 
+      end
+      context "GET /show" do
+        setup { get :show } 
+        should_redirect_to_first_step
+      end
+      context "GET /edit" do
+        setup { get :edit } 
+        should "assign the checkout ip address" do
+          assert_equal "0.0.0.0", assigns(:checkout).ip_address
+        end
+        should_render_template :edit
       end
     end
+    context "complete order" do
+      setup do 
+        @order = create_complete_order
+        @params = { :order_id => @order.number } 
+      end
+      context "GET /checkout" do
+        setup { get :show } 
+        should_redirect_to_thanks
+      end    
+      context "GET /checkout/edit" do
+        setup { get :edit } 
+        should_redirect_to_thanks
+      end    
+      context "PUT /checkout" do
+        setup { post :update } 
+        should_redirect_to_thanks
+      end    
+    end  
   end
-  context "complete order" do
-    setup do 
-      @order = create_complete_order
-      @params = { :order_id => @order.number } 
+
+  context "no current_user" do
+    setup { @controller.stub!(:current_user, :return => nil) }
+    context "with incomplete order" do
+      setup do 
+        Spree::Config.set({ :default_country_id => countries(:united_states).id })
+        @order = Factory(:order)
+        @params = { :order_id => @order.number } 
+      end
+      context "GET /show" do
+        setup { get :show } 
+        should_redirect_to_register
+      end
+      context "GET /edit" do
+        setup { get :edit } 
+        should_redirect_to_register
+      end
+      context "with anonymous checkout enabled" do
+        setup { Spree::Config.set({ :anonymous_checkout => true }) }
+        context "GET /show" do
+          setup { get :show } 
+          should_redirect_to_first_step
+        end
+        context "GET /edit" do
+          setup { get :edit } 
+          should_render_template :edit
+        end
+      end
     end
-    context "GET /checkout" do
-      setup { get :show } 
-      should_redirect_to("thank you page") { order_url(@order) }
-    end    
-    context "GET /checkout/edit" do
-      setup { get :edit } 
-      should_redirect_to("thank you page") { order_url(@order) }
-    end    
-    context "PUT /checkout" do
-      setup { post :update } 
-      should_redirect_to("thank you page") { order_url(@order) }
-    end    
   end
 end

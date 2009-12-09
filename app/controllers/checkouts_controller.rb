@@ -3,6 +3,7 @@ class CheckoutsController < Spree::BaseController
   include ActionView::Helpers::NumberHelper # Needed for JS usable rate information
   before_filter :load_data
   before_filter :set_state
+  before_filter :enforce_registration, :except => :register
 
   resource_controller :singleton
   actions :show, :edit, :update
@@ -41,6 +42,10 @@ class CheckoutsController < Spree::BaseController
     end
 
     render 'edit'
+  end
+  
+  def register
+    
   end
     
   private
@@ -132,5 +137,10 @@ class CheckoutsController < Spree::BaseController
         :name => ship_method.name,
         :rate => number_to_currency(ship_method.calculate_cost(fake_shipment)) }
     end
+  end
+  
+  def enforce_registration
+    return if current_user or Spree::Config[:anonymous_checkout]
+    redirect_to register_order_checkout_url(parent_object) and return false
   end
 end
