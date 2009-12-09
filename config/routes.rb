@@ -43,7 +43,7 @@ ActionController::Routing::Routes.draw do |map|
   map.resources :orders, :member => {:address_info => :get}, :has_many => [:line_items, :creditcards, :creditcard_payments]
   map.resources :orders, :member => {:fatal_shipping => :get} do |order|
     order.resources :shipments, :member => {:shipping_method => :get}
-    order.resource :checkout, :member => {:register => :get}
+    order.resource :checkout, :member => {:register => :any}
   end
   #map.resources :shipments, :member => {:shipping_method => :any}
 

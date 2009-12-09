@@ -130,8 +130,21 @@ class CheckoutsControllerTest < ActionController::TestCase
         setup { get :edit } 
         should_redirect_to_register
       end
+      context "with guest checkout enabled" do
+        setup { Spree::Config.set({ :allow_guest_checkout => true }) }
+        context "POST /register" do
+          setup do
+            @params[:checkout] = {:email => "test@foo.com"} 
+            post :register
+          end 
+          should_redirect_to_first_step
+          should "save the email property" do
+            assert_equal "test@foo.com", assigns(:checkout).reload.email
+          end
+        end
+      end
       context "with anonymous checkout enabled" do
-        setup { Spree::Config.set({ :anonymous_checkout => true }) }
+        setup { Spree::Config.set({ :allow_anonymous_checkout => true }) }
         context "GET /show" do
           setup { get :show } 
           should_redirect_to_first_step
