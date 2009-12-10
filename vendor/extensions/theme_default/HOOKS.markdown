@@ -78,6 +78,7 @@ Layout (layouts/admin.html.erb)
 
 The following hooks allow list items to be added to various admin menus
 
+* admin_head (allows scripts etc. to be added to head tag)
 * admin_tabs
 * admin_product_sub_tabs
 * admin_order_tabs (sidebar menu for individual order)
