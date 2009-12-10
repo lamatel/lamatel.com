@@ -70,8 +70,11 @@ Account (users/show.html.erb)
 Admin Views
 ===========
 
+
 Layout (layouts/admin.html.erb)
 -------------------------------
+
+* admin_head (allow scripts etc. to be added to the head tab)
 
 The following hooks allow list items to be added to various admin menus
 
