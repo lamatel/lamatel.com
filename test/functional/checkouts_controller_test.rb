@@ -132,14 +132,40 @@ class CheckoutsControllerTest < ActionController::TestCase
       end
       context "with guest checkout enabled" do
         setup { Spree::Config.set({ :allow_guest_checkout => true }) }
-        context "POST /register" do
-          setup do
-            @params[:checkout] = {:email => "test@foo.com"} 
-            post :register
-          end 
-          should_redirect_to_first_step
-          should "save the email property" do
-            assert_equal "test@foo.com", assigns(:checkout).reload.email
+        context "email assigned" do
+          setup { @order.checkout.update_attribute("email", Faker::Internet.email) }
+          context "GET /edit" do
+            setup { get :edit } 
+            should_respond_with :success
+          end
+        end
+        context "no email assigned" do
+          context "POST /register with valid email" do
+            setup do
+              @params[:checkout] = {:email => "test@foo.com"} 
+              post :register
+            end 
+            should_redirect_to_first_step
+            should "save the email property" do
+              assert_equal "test@foo.com", assigns(:checkout).reload.email
+            end
+          end
+          context "POST /register with invalid email" do
+            setup do
+              @params[:checkout] = {:email => "foo.com"} 
+              post :register
+            end 
+            should_respond_with :success # validation error
+            should "not save the email property" do
+              assert_equal nil, assigns(:checkout).reload.email
+            end
+          end
+          context "POST /register with blank email" do
+            setup do
+              @params[:checkout] = {:email => ""} 
+              post :register
+            end 
+            should_respond_with :success # validation error
           end
         end
       end

@@ -1,6 +1,6 @@
 class Checkout < ActiveRecord::Base  
   extend ValidationGroup::ActiveRecord::ActsMethods
-  #ActiveRecord::Errors.send :include, ValidationGroup::ActiveRecord::Errors
+
   after_save :process_coupon_code
   before_validation :clone_billing_address, :if => "@use_billing"
   
@@ -13,13 +13,13 @@ class Checkout < ActiveRecord::Base
   accepts_nested_attributes_for :shipment
   accepts_nested_attributes_for :creditcard
 
-  # for memory-only storage of creditcard details
-  #attr_accessor :creditcard    
   attr_accessor :coupon_code
-	#attr_accessor :confirmed
   attr_accessor :use_billing
   
   validates_presence_of :order_id
+  validates_format_of :email, :with => /^\S+@\S+\.\S+$/, :allow_blank => true
+  
+  validation_group :register, :fields => ["email"]
 
   validation_group :address, :fields=>["bill_address.firstname", "bill_address.lastname", "bill_address.phone", 
                                        "bill_address.zipcode", "bill_address.state", "bill_address.lastname", 

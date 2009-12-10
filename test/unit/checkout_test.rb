@@ -4,7 +4,8 @@ class CheckoutTest < ActiveSupport::TestCase
   fixtures :gateways
 
   should_belong_to :bill_address
-
+  should_not_allow_values_for :email, "blah", "b lah", "blah@blah"
+  
   context Checkout do
     setup { @checkout = Factory(:checkout) }
     context "in payment state w/no auto capture" do

@@ -48,11 +48,14 @@ class CheckoutsController < Spree::BaseController
   
   def register
     load_object
-    if request.method == :get
-      @user = User.new
-    else 
-      @checkout.update_attribute(:email, params[:checkout][:email])
-      redirect_to edit_object_url
+    @user = User.new
+    if request.method == :post
+      @checkout.email = params[:checkout][:email]
+      @checkout.enable_validation_group(:register)
+      if @checkout.email.present? and @checkout.save
+        redirect_to edit_object_url
+      end
+      @checkout.errors.add t(:email) unless @checkout.email.present?
     end
   end
     
@@ -149,6 +152,7 @@ class CheckoutsController < Spree::BaseController
   
   def enforce_registration
     return if current_user or Spree::Config[:allow_anonymous_checkout]
+    return if Spree::Config[:allow_guest_checkout] and object.email.present?
     store_location
     redirect_to register_order_checkout_url(parent_object)
   end
