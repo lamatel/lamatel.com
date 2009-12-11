@@ -19,13 +19,20 @@ Running from sources (latest and greatest features)
         
 3. Install the gem dependencies
 
-        rake gems:install
+        sudo rake gems:install
         
-4. Bootstrap the database (run the migrations, create admin account, optionally load sample data.)
+4. Create the database
+
+        rake db:create
+or
+
+        rake db:create ENV=production
+
+5. Bootstrap the database (run the migrations, create admin account, optionally load sample data.)
 
         rake db:bootstrap
 
-5. Start the server
+6. Start the server
 
         script/server
 
